@@ -38,5 +38,4 @@ python svm_pipeline.py
 - Trained model saved as `best_model.joblib`
 - Visuals and evaluation metrics stored in the `visuals/` and `results/` folders
 =======
-# Breast_cancer_svm_project_ai_ml_work
->>>>>>> cae22fc3e18f95672e8f4434a2cfba9a539149c3
+
