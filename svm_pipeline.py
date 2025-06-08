@@ -1,4 +1,3 @@
-# Breast Cancer Classification with a Human-Friendly SVM Pipeline
 import os
 import numpy as np
 import pandas as pd
@@ -30,11 +29,18 @@ config = {
     ]
 }
 
-# Create folders
-os.makedirs("visuals/eda", exist_ok=True)
-os.makedirs("visuals/metrics", exist_ok=True)
-os.makedirs("visuals/shap", exist_ok=True)
-os.makedirs("results", exist_ok=True)
+# Base directory (current working directory)
+base_dir = os.getcwd()
+
+# Create folders relative to base_dir
+folders = [
+    os.path.join(base_dir, "visuals", "eda"),
+    os.path.join(base_dir, "visuals", "metrics"),
+    os.path.join(base_dir, "visuals", "shap"),
+    os.path.join(base_dir, "results")
+]
+for folder in folders:
+    os.makedirs(folder, exist_ok=True)
 
 # Load dataset
 data = load_breast_cancer()
@@ -44,8 +50,10 @@ y = data.target
 # Plot class distribution
 sns.countplot(x=y)
 plt.title("Target Class Distribution")
-plt.savefig("visuals/eda/target_distribution.png")
+path = os.path.join(base_dir, "visuals", "eda", "target_distribution.png")
+plt.savefig(path)
 plt.close()
+print(f"Saved plot: {path}")
 
 # Top-K feature selection
 selector = SelectKBest(score_func=f_classif, k=config['top_k_features'])
@@ -56,16 +64,21 @@ top_features = X.columns[selector.get_support()]
 for col in top_features:
     sns.boxplot(x=y, y=X[col])
     plt.title(f"{col} by Diagnosis")
-    plt.savefig(f"visuals/eda/box_{col}.png")
+    path = os.path.join(base_dir, "visuals", "eda", f"box_{col}.png")
+    plt.savefig(path)
     plt.close()
+    print(f"Saved plot: {path}")
 
 # Correlation heatmap
 plt.figure(figsize=(10, 8))
 sns.heatmap(X.corr(), cmap='coolwarm')
 plt.title("Feature Correlation Matrix")
 plt.tight_layout()
-plt.savefig("visuals/eda/correlation_matrix.png")
+path = os.path.join(base_dir, "visuals", "eda", "correlation_matrix.png")
+plt.savefig(path)
 plt.close()
+print(f"Saved plot: {path}")
+
 # Preprocess features
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
@@ -88,14 +101,21 @@ print(f"✅ Test Accuracy: {acc:.4f}")
 
 # Save model and metrics
 report = classification_report(y_test, y_pred, output_dict=True)
-pd.DataFrame(report).transpose().to_csv("results/classification_report.csv")
-joblib.dump(best_model, "results/best_model.joblib")
+report_path = os.path.join(base_dir, "results", "classification_report.csv")
+pd.DataFrame(report).transpose().to_csv(report_path)
+print(f"Saved classification report: {report_path}")
+
+model_path = os.path.join(base_dir, "results", "best_model.joblib")
+joblib.dump(best_model, model_path)
+print(f"Saved model: {model_path}")
 
 # Confusion Matrix
 sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt='d', cmap='Blues')
 plt.title("Confusion Matrix")
-plt.savefig("visuals/metrics/confusion_matrix.png")
+path = os.path.join(base_dir, "visuals", "metrics", "confusion_matrix.png")
+plt.savefig(path)
 plt.close()
+print(f"Saved plot: {path}")
 
 # ROC Curve
 probs = best_model.decision_function(X_test)
@@ -107,8 +127,10 @@ plt.xlabel("False Positive Rate")
 plt.ylabel("True Positive Rate")
 plt.title("ROC Curve")
 plt.legend()
-plt.savefig("visuals/metrics/roc_curve.png")
+path = os.path.join(base_dir, "visuals", "metrics", "roc_curve.png")
+plt.savefig(path)
 plt.close()
+print(f"Saved plot: {path}")
 
 # Precision-Recall Curve
 precision, recall, _ = precision_recall_curve(y_test, probs)
@@ -116,8 +138,11 @@ plt.plot(recall, precision)
 plt.xlabel("Recall")
 plt.ylabel("Precision")
 plt.title("Precision-Recall Curve")
-plt.savefig("visuals/metrics/precision_recall.png")
+path = os.path.join(base_dir, "visuals", "metrics", "precision_recall.png")
+plt.savefig(path)
 plt.close()
+print(f"Saved plot: {path}")
+
 # PCA Visualization of Decision Boundary
 pca = PCA(n_components=config["pca_components"])
 X_pca = pca.fit_transform(X_scaled)
@@ -135,8 +160,10 @@ plt.scatter(X_pca[:, 0], X_pca[:, 1], c=y, cmap="coolwarm", edgecolors="k")
 plt.title("Decision Boundary (PCA)")
 plt.xlabel("PC1")
 plt.ylabel("PC2")
-plt.savefig("visuals/metrics/pca_decision_boundary.png")
+path = os.path.join(base_dir, "visuals", "metrics", "pca_decision_boundary.png")
+plt.savefig(path)
 plt.close()
+print(f"Saved plot: {path}")
 
 # SHAP Explainability
 explainer = shap.KernelExplainer(best_model.decision_function, X_train[:100])
@@ -147,7 +174,9 @@ shap.summary_plot(
     pd.DataFrame(X_test[:config["shap_sample_size"]], columns=X.columns),
     show=False
 )
-plt.savefig("visuals/shap/shap_summary.png")
+path = os.path.join(base_dir, "visuals", "shap", "shap_summary.png")
+plt.savefig(path)
 plt.close()
+print(f"Saved plot: {path}")
 
-print("\\n🎉 All tasks completed: Model trained, evaluated, visualized, and explained using SHAP.")
+print("\n🎉 All tasks completed: Model trained, evaluated, visualized, and explained using SHAP.")
